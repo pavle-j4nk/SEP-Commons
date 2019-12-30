@@ -12,5 +12,4 @@ import lombok.With;
 public class PaymentStatusResponse {
     private Long paymentId;
     private PaymentStatus status;
-    private String message;
 }
