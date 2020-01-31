@@ -20,11 +20,11 @@ public class KeygenClient extends AbstractClient {
     }
 
     public SignedKeyDto generateKey(GenerateRequest request) {
-        return post(PATH_GENERATE, request, SignedKeyDto.class);
+        return waitAndPost(PATH_GENERATE, request, SignedKeyDto.class);
     }
 
     public CertificateDto sign(SignRequest signRequest) {
-        return post(PATH_SIGN, signRequest, CertificateDto.class);
+        return waitAndPost(PATH_SIGN, signRequest, CertificateDto.class);
     }
 
 }

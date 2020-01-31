@@ -25,8 +25,17 @@ public abstract class AbstractClient {
         this.restTemplate = restTemplate;
     }
 
+    protected <T> T waitAndGet(List<String> path, Class<T> responseType, Object... params) {
+        String url = UrlHelper.addPathVariables(waitForUrl(), path.toArray(new String[0]));
+        return get(url, responseType, params);
+    }
+
     protected <T> T get(List<String> path, Class<T> responseType, Object... params) {
         String url = UrlHelper.addPathVariables(chooseUrl(), path.toArray(new String[0]));
+        return get(url, responseType, params);
+    }
+
+    protected <T> T get(String url, Class<T> responseType, Object... params) {
 
         ResponseEntity<T> response = restTemplate.getForEntity(url, responseType, params);
         HttpStatus status = response.getStatusCode();
@@ -40,7 +49,15 @@ public abstract class AbstractClient {
 
     protected <T> T post(List<String> path, Object request, Class<T> responseType) {
         String url = UrlHelper.addPathVariables(chooseUrl(), path.toArray(new String[0]));
+        return post(url, request, responseType);
+    }
 
+    protected <T> T waitAndPost(List<String> path, Object request, Class<T> responseType) {
+        String url = UrlHelper.addPathVariables(waitForUrl(), path.toArray(new String[0]));
+        return post(url, request, responseType);
+    }
+
+    protected <T> T post(String url, Object request, Class<T> responseType) {
         ResponseEntity<T> response = restTemplate.postForEntity(url, request, responseType);
         HttpStatus status = response.getStatusCode();
 
@@ -64,4 +81,27 @@ public abstract class AbstractClient {
 
         return instance.getUri().toString();
     }
+
+    /**
+     * Chooses url for service based eureka registry, and load balancer.
+     * Call will block until required service is available.
+     *
+     * @return URL
+     */
+    public String waitForUrl() {
+        while (true) {
+            try {
+                return chooseUrl();
+            } catch (UnknownInstance unknownInstance) {
+                System.out.println("Instance now available: " + service.getServiceName());
+                System.out.println("Waiting...");
+                try {
+                    Thread.sleep(15000);
+                } catch (InterruptedException e) {
+                    throw unknownInstance;
+                }
+            }
+        }
+    }
+
 }
